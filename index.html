@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dennisse · Un pequeño universo</title>
+<style>
+:root{--gold:#ffd84d;--gold2:#ffb300;--ink:#fff8dc}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#01020a;color:white;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+body{overflow:hidden}#app{position:relative;width:100vw;height:100vh;min-height:560px;background:#01020a;overflow:hidden}
+canvas{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none;z-index:0}
+#app:after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at 50% 46%,transparent 28%,rgba(0,0,0,.18) 72%,rgba(0,0,0,.58) 100%),linear-gradient(180deg,rgba(0,0,0,.27),transparent 24%,transparent 78%,rgba(0,0,0,.2))}
+#top{z-index:4}
+#top h1{background:linear-gradient(180deg,#fff9df 12%,#f5d68a 72%,#d59a3d);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 24px rgba(255,202,93,.2)}
+#hint{box-shadow:0 0 28px rgba(255,187,53,.08),inset 0 0 20px rgba(255,210,120,.035)}
+#message{border-color:rgba(255,216,130,.62);box-shadow:0 20px 90px rgba(0,0,0,.68),0 0 60px rgba(255,190,65,.2),inset 0 0 28px rgba(255,205,105,.06)}
+#message .icon{text-shadow:0 0 10px #fff1a8,0 0 28px #ffc247,0 0 52px rgba(255,160,25,.75)}
+#top{position:absolute;top:22px;left:50%;transform:translateX(-50%);z-index:4;text-align:center;pointer-events:none;width:min(92vw,720px)}
+#top h1{margin:0;font-family:Georgia,serif;font-size:clamp(25px,4vw,42px);font-weight:500;letter-spacing:.03em;text-shadow:0 0 25px rgba(255,210,70,.28)}
+#top p{margin:7px 0 0;color:rgba(255,255,255,.7);font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+
+#heart-modal{position:absolute;inset:0;z-index:9;display:grid;place-items:center;padding:22px;background:radial-gradient(ellipse at center,rgba(37,25,12,.48),rgba(1,2,10,.78));backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);opacity:0;pointer-events:none;transition:opacity .45s ease}#heart-modal.show{opacity:1;pointer-events:auto}#heart-card{position:relative;width:min(510px,90vw);padding:clamp(25px,5vw,43px) clamp(23px,5vw,48px);text-align:center;border:1px solid rgba(255,218,135,.55);border-radius:0;background:radial-gradient(ellipse at 50% 0%,rgba(112,74,25,.42),transparent 58%),linear-gradient(145deg,rgba(20,17,20,.94),rgba(5,6,15,.94));box-shadow:0 0 0 1px rgba(255,236,174,.08),0 0 65px rgba(255,183,49,.22),inset 0 0 45px rgba(255,199,91,.07);transform:translateY(14px) scale(.97);transition:transform .45s cubic-bezier(.2,.8,.2,1)}#heart-modal.show #heart-card{transform:translateY(0) scale(1)}#heart-card .eyebrow{color:#eac77f;font:10px/1.4 Inter,system-ui,sans-serif;letter-spacing:.34em;text-transform:uppercase}#heart-card .star{margin:12px 0 15px;color:#ffdf91;font-size:26px;text-shadow:0 0 22px #ffb52f}#heart-card .quote{font-family:Georgia,'Times New Roman',serif;color:#fff1cb;font-size:clamp(17px,3.2vw,23px);line-height:1.65;text-shadow:0 2px 18px rgba(0,0,0,.8),0 0 24px rgba(255,198,77,.18)}#heart-card .rule{width:90px;height:1px;margin:22px auto 14px;background:linear-gradient(90deg,transparent,#e9c47b,transparent)}#heart-card .credit{color:#c9a96d;font:9px/1.5 Inter,system-ui,sans-serif;letter-spacing:.25em}#heart-close{margin-top:24px;padding:10px 22px;border:1px solid rgba(255,220,142,.55);border-radius:0;background:rgba(255,205,102,.09);color:#ffe8b3;font:12px Inter,system-ui,sans-serif;letter-spacing:.12em;cursor:pointer}#heart-close:active{background:rgba(255,205,102,.2)}@keyframes runeFlicker{0%{opacity:.82;filter:url(#goldGlow)}100%{opacity:1;filter:url(#goldGlow)}}
+#hint{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:4;padding:9px 15px;border:1px solid rgba(255,255,255,.14);border-radius:0;background:rgba(2,4,14,.48);backdrop-filter:blur(10px);font-size:12px;color:rgba(255,255,255,.72);white-space:nowrap;pointer-events:none}
+#loading{position:absolute;inset:0;display:grid;place-items:center;z-index:8;background:#01020a;transition:opacity .5s}
+#loading.hide{opacity:0;pointer-events:none}.loader{text-align:center}.loader .flower{font-size:44px;animation:pulse 1.7s ease-in-out infinite}.loader p{margin:12px 0 0;color:#ddd;font-size:14px}.bar{width:220px;height:3px;background:#1c1e2a;border-radius:0;overflow:hidden;margin:12px auto}.bar i{display:block;height:100%;width:35%;background:linear-gradient(90deg,#ffb300,#ffe06b);animation:load 1.3s infinite}
+@keyframes pulse{50%{transform:scale(1.08)}}@keyframes load{0%{transform:translateX(-120%)}100%{transform:translateX(360%)}}
+#message{position:absolute;left:50%;top:50%;transform:translate(-50%,-46%) scale(.96);z-index:7;width:min(420px,calc(100vw - 38px));padding:28px 28px 24px;border-radius:0;border:1px solid rgba(255,216,77,.45);background:linear-gradient(145deg,rgba(12,14,35,.96),rgba(4,5,17,.94));box-shadow:0 20px 90px rgba(0,0,0,.65),0 0 55px rgba(255,190,40,.12);opacity:0;pointer-events:none;transition:.28s ease;text-align:center;backdrop-filter:blur(16px)}
+#message.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}#message .icon{font-family:serif;font-size:42px;line-height:1;filter:drop-shadow(0 0 14px #ffd84d);color:#ffe46b}#message .small{margin:6px 0 12px;color:#d8c47b;font-size:11px;text-transform:uppercase;letter-spacing:.2em}#message .text{font-family:Georgia,serif;font-size:21px;line-height:1.45;color:#fff8df}#close{margin-top:18px;border:1px solid rgba(255,216,77,.5);background:rgba(255,216,77,.1);color:#ffe68a;border-radius:0;padding:9px 18px;cursor:pointer}#close:hover{background:rgba(255,216,77,.18)}
+#local{display:none;position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);z-index:9;width:min(420px,calc(100vw - 38px));padding:22px;border-radius:0;background:rgba(7,9,24,.96);border:1px solid rgba(255,255,255,.14);text-align:center}#local.show{display:block}#local label{display:inline-block;padding:11px 16px;border-radius:0;background:#ffd84d;color:#171200;font-weight:700;cursor:pointer}#local input{display:none}
+@media(max-width:600px){#hint{font-size:10px;bottom:13px;max-width:92vw;overflow:hidden;text-overflow:ellipsis}#top{top:15px}#top p{font-size:10px}.text{font-size:18px!important}#heart-card{padding:28px 23px}}
+/* Geometría cuadrada para todos los marcos y controles de interfaz. */
+#heart-card,#heart-close,#hint,#message,#close,#local,#local label,.bar{border-radius:0!important}
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app">
+  <div id="loading"><div class="loader"><div class="flower">🌻</div><p>Preparando el pequeño universo de Dennisse…</p><div class="bar"><i></i></div></div></div>
+  <div id="top"><h1>Para Dennisse</h1><p>un pequeño universo hecho para usted</p></div>
+  <canvas id="scene"></canvas>
+  <div id="heart-modal" aria-hidden="true">
+    <div id="heart-card" role="dialog" aria-modal="true" aria-labelledby="heart-title">
+      <div class="eyebrow" id="heart-title">Más allá de las estrellas</div>
+      <div class="star">✧</div>
+      <div class="quote">El amor trasciende el tiempo y el espacio. Es la conexión que permanece incluso cuando todo lo demás desaparece. Quizá sea la única fuerza capaz de llevarnos hasta donde nunca podríamos llegar solos.</div>
+      <div class="rule"></div>
+      <button id="heart-close" type="button">Volver al universo</button>
+    </div>
+  </div>
+  <div id="hint">Arrastra para girar · pellizca para acercar · toca una runa</div>
+  <div id="message" role="dialog" aria-modal="true" aria-live="polite"><div class="icon">✦</div><div class="small" id="msgNo">Mensaje</div><div class="text" id="msgText"></div><button id="close" type="button">Cerrar</button></div>
+  <div id="local"><p>El navegador bloquea la carga del modelo al abrir HTML directamente. Puedes cargar el GLB aquí:</p><label>Elegir sunflower.glb<input id="file" type="file" accept=".glb,model/gltf-binary"></label></div>
+</div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
+import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/loaders/GLTFLoader.js';
+import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js';
+
+const canvas=document.getElementById('scene');
+const loading=document.getElementById('loading');
+const localBox=document.getElementById('local');
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(42,1,.01,100);
+const STEM_FOCUS_DEFAULT = -0.654;
+camera.position.set(0.25,STEM_FOCUS_DEFAULT+0.64,4.4);
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.12;
+
+const controls=new OrbitControls(camera,canvas);
+controls.enableDamping=true;controls.dampingFactor=.055;controls.enablePan=false;controls.minDistance=2.1;controls.maxDistance=7.5;controls.target.set(0,STEM_FOCUS_DEFAULT,0);
+
+scene.add(new THREE.AmbientLight(0x9da8d8,1.08));
+const hemi=new THREE.HemisphereLight(0xffe7b0,0x101426,.62);scene.add(hemi);
+const warm=new THREE.PointLight(0xffd35a,7.2,12,2);warm.position.set(1.4,2.1,2.7);scene.add(warm);
+const cool=new THREE.PointLight(0x5f7dff,2.6,14,2);cool.position.set(-3,-1,-3);scene.add(cool);
+// Luz frontal cálida y dos luces de recorte para separar pétalos, hojas y tallos del fondo.
+const petalKey=new THREE.DirectionalLight(0xffe0a0,2.15);petalKey.position.set(-2.4,3.4,4.8);scene.add(petalKey);
+const flowerFill=new THREE.PointLight(0xffbd54,3.1,5.8,2);flowerFill.position.set(-.65,.72,2.1);scene.add(flowerFill);
+const flowerRim=new THREE.PointLight(0xffd77b,2.25,6.5,2);flowerRim.position.set(.25,.85,-1.7);scene.add(flowerRim);
+
+
+// Fondo: estrellas + nebulosa procedural, sin assets externos.
+const starPositions=[];const starColors=[];const starCount=1700;
+for(let i=0;i<starCount;i++){const r=7+Math.random()*18, a=Math.random()*Math.PI*2, z=Math.random()*2-1, s=Math.sqrt(1-z*z);starPositions.push(r*s*Math.cos(a),r*z,r*s*Math.sin(a));const warmStar=Math.random()<.18;starColors.push(warmStar?1:.72,warmStar?.78:.84,warmStar?.35:1)}
+const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.Float32BufferAttribute(starPositions,3));sg.setAttribute('color',new THREE.Float32BufferAttribute(starColors,3));
+const sm=new THREE.PointsMaterial({size:.035,vertexColors:true,transparent:true,opacity:.82,depthWrite:false});scene.add(new THREE.Points(sg,sm));
+
+// Polvo estelar cercano al ramo: partículas pequeñas con deriva lenta para dar escala.
+const dustCount=105,dustBase=new Float32Array(dustCount*3),dustPositions=new Float32Array(dustCount*3),dustPhases=new Float32Array(dustCount);
+for(let i=0;i<dustCount;i++){const a=Math.random()*Math.PI*2,r=.85+Math.random()*3.1;dustBase[i*3]=Math.cos(a)*r;dustBase[i*3+1]=-.65+Math.random()*2.15;dustBase[i*3+2]=Math.sin(a)*r-0.15;dustPhases[i]=Math.random()*Math.PI*2;}
+dustPositions.set(dustBase);const dustGeo=new THREE.BufferGeometry();dustGeo.setAttribute('position',new THREE.BufferAttribute(dustPositions,3));
+const dustMat=new THREE.PointsMaterial({color:0xffd989,size:.018,transparent:true,opacity:.44,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true});const dustField=new THREE.Points(dustGeo,dustMat);scene.add(dustField);
+let heartIsOpen=false,heartReveal=0,heartRevealAt=0;
+const glowCanvas=document.createElement('canvas');glowCanvas.width=256;glowCanvas.height=256;const gc=glowCanvas.getContext('2d');const grd=gc.createRadialGradient(128,128,5,128,128,128);grd.addColorStop(0,'rgba(255,214,74,.20)');grd.addColorStop(.35,'rgba(255,178,38,.08)');grd.addColorStop(1,'rgba(255,160,0,0)');gc.fillStyle=grd;gc.fillRect(0,0,256,256);const glowTex=new THREE.CanvasTexture(glowCanvas);const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));glow.scale.set(4.7,4.7,1);glow.position.set(0,.08,-.45);scene.add(glow);
+
+// Nebulosas tenues en capas: dan profundidad sin competir con el ramo ni con las runas.
+function makeNebulaTexture(toneA,toneB){
+ const c=document.createElement('canvas');c.width=512;c.height=512;const x=c.getContext('2d');
+ const g=x.createRadialGradient(250,250,18,250,250,250);g.addColorStop(0,toneA);g.addColorStop(.34,toneB);g.addColorStop(.7,'rgba(30,25,48,.16)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,512,512);
+ // Nubes secundarias superpuestas para romper la forma circular perfecta.
+ for(let i=0;i<7;i++){const px=100+Math.random()*310,py=80+Math.random()*350,r=55+Math.random()*105;const q=x.createRadialGradient(px,py,2,px,py,r);q.addColorStop(0,toneB);q.addColorStop(1,'rgba(0,0,0,0)');x.globalAlpha=.34;x.fillStyle=q;x.fillRect(px-r,py-r,r*2,r*2)}
+ x.globalAlpha=1;return new THREE.CanvasTexture(c);
+}
+const nebulaLayers=[];
+const nebulaDefs=[
+ {p:[-4.6,2.6,-7.2],s:[8.2,5.8],a:'rgba(224,145,48,.34)',b:'rgba(151,82,37,.25)',o:.58},
+ {p:[4.8,-1.8,-8.2],s:[7.4,6.5],a:'rgba(102,119,190,.27)',b:'rgba(112,70,145,.22)',o:.48},
+ {p:[-.8,-4.7,-9.5],s:[9.5,5.2],a:'rgba(216,133,53,.24)',b:'rgba(121,75,38,.20)',o:.42}
+];
+for(const d of nebulaDefs){const m=new THREE.SpriteMaterial({map:makeNebulaTexture(d.a,d.b),transparent:true,opacity:d.o,depthWrite:false,blending:THREE.AdditiveBlending});const sp=new THREE.Sprite(m);sp.position.set(...d.p);sp.scale.set(d.s[0],d.s[1],1);scene.add(sp);nebulaLayers.push({sprite:sp,base:sp.position.clone(),phase:Math.random()*Math.PI*2});}
+
+// Estrellas fugaces: destellos breves con una estela dorada y movimiento diagonal.
+const shootingStars=[];
+for(let i=0;i<3;i++){
+ const geo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]);
+ const trail=new THREE.Line(geo,new THREE.LineBasicMaterial({color:0xffd98a,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.035,8,8),new THREE.MeshBasicMaterial({color:0xfff1c5,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));
+ scene.add(trail,head);shootingStars.push({trail,head,active:false,age:0,duration:1.15+Math.random()*.45,start:new THREE.Vector3(),velocity:new THREE.Vector3(),next:1.2+Math.random()*4.5});
+}
+function launchShootingStar(m){
+ m.active=true;m.age=0;m.duration=1.05+Math.random()*.55;
+ m.start.set(-7+Math.random()*8,3.3+Math.random()*3.4,-6.5-Math.random()*2);
+ m.velocity.set(4.2+Math.random()*2.2,-2.2-Math.random()*1.5,0);
+ m.trail.visible=true;m.head.visible=true;
+}
+
+const world=new THREE.Group();scene.add(world);
+
+const raycaster=new THREE.Raycaster();const pointer=new THREE.Vector2();const nodes=[];const wires=[];
+// Punto único de convergencia: centro vertical del tallo. Runa, halo y rayos comparten este ancla.
+const stemAnchor=new THREE.Vector3(0,.46,0);
+const messages=[
+  "Dennisse, mi pequeña princesita.",
+  "Le amo, mi niña bonita.",
+  "Usted es el cangrejo en mi cangrejada.",
+  "Nunca espectadora.",
+  "Esta vez lo haremos bien ❤️.",
+  "Quiero pasar mi vida a su lado.",
+  "Estoy feliz y orgulloso por usted.",
+  "Siempre estaré para usted.",
+  "Como el sol y la luna, distintos pero siempre buscándose.",
+  "¿Qué más da la vida si no la vivo a su lado?",
+  "Usted es una chica increíble, nunca lo olvide.",
+  "Dennisse, si pudiera escoger una estrella para pedir un deseo, la escogería a usted.",
+  "Quiero seguir descubriendo con usted todos esos pequeños momentos que terminan siendo los más bonitos.",
+  "Cuando pienso en un lugar donde quiero estar, muchas veces la respuesta es usted.",
+  "Dennisse, su sonrisa tiene esa extraña costumbre de arreglarme el día.",
+  "No necesito un universo perfecto; me basta uno donde usted esté.",
+  "Si el tiempo me diera otra oportunidad, volvería a buscarla."
+];
+const runes=[
+  [
+    "ᛃ",
+    "Jera · cosecha, ciclos"
+  ],
+  [
+    "ᛚ",
+    "Laguz · agua, intuición"
+  ],
+  [
+    "ᚷ",
+    "Gebo · regalo, vínculo"
+  ],
+  [
+    "ᛏ",
+    "Tiwaz · voluntad, valor"
+  ],
+  [
+    "ᛒ",
+    "Berkano · crecimiento, hogar"
+  ],
+  [
+    "ᛟ",
+    "Othala · familia, herencia"
+  ],
+  [
+    "ᛏ",
+    "Tiwaz · orgullo, determinación"
+  ],
+  [
+    "ᛉ",
+    "Algiz · protección"
+  ],
+  [
+    "ᛞ",
+    "Dagaz · cambio, nuevo día"
+  ],
+  [
+    "ᛃ",
+    "Jera · recompensa, cosecha"
+  ],
+  [
+    "ᛒ",
+    "Berkano · vida, cuidado"
+  ],
+  [
+    "ᛖ",
+    "Ehwaz · confianza, movimiento"
+  ],
+  [
+    "ᚹ",
+    "Wunjo · alegría"
+  ],
+  [
+    "ᚲ",
+    "Kenaz · luz, conocimiento"
+  ],
+  [
+    "ᛚ",
+    "Laguz · emoción, intuición"
+  ],
+  [
+    "ᚹ",
+    "Wunjo · felicidad"
+  ],
+  [
+    "ᛋ",
+    "Sowilo · sol, vitalidad"
+  ]
+];
+function makeGlowTexture(){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');const g=x.createRadialGradient(64,64,1,64,64,64);g.addColorStop(0,'rgba(255,255,240,1)');g.addColorStop(.09,'rgba(255,249,190,1)');g.addColorStop(.23,'rgba(255,220,80,.96)');g.addColorStop(.48,'rgba(255,170,28,.42)');g.addColorStop(.72,'rgba(255,150,12,.13)');g.addColorStop(1,'rgba(255,130,0,0)');x.fillStyle=g;x.fillRect(0,0,128,128);return new THREE.CanvasTexture(c)}
+function makeRuneTexture(rune){const c=document.createElement('canvas');c.width=256;c.height=256;const x=c.getContext('2d');x.clearRect(0,0,256,256);x.font='150px serif';x.textAlign='center';x.textBaseline='middle';x.shadowColor='#ffe86a';x.shadowBlur=17.6;x.fillStyle='#fff2a0';x.fillText(rune,128,132);x.shadowBlur=5.6;x.fillStyle='#fffbd5';x.fillText(rune,128,132);return new THREE.CanvasTexture(c)}
+const nodeGlowTex=makeGlowTexture();
+
+// La runa aprobada como glifo SVG rasterizado: dos diagonales entrelazadas y rombo central.
+// Se dibuja sobre textura transparente para que emita luz sin bordes oscuros ni panel rectangular.
+const centralRunePaths=[
+ [[86,60],[256,250],[86,440],[256,630],[426,820]],
+ [[426,60],[256,250],[426,440],[256,630],[86,820]]
+];
+function makeCentralRuneTexture(){
+ const c=document.createElement('canvas');c.width=512;c.height=860;const x=c.getContext('2d');
+ function stroke(color,width,blur,alpha){
+  x.save();x.globalCompositeOperation='lighter';x.globalAlpha=alpha;x.strokeStyle=color;x.lineWidth=width;x.lineCap='square';x.lineJoin='miter';x.shadowColor=color;x.shadowBlur=blur;
+  for(const pts of centralRunePaths){x.beginPath();x.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)x.lineTo(pts[i][0],pts[i][1]);x.stroke();}
+  x.restore();
+ }
+ // Amplio bloom, cuerpo amarillo y filamento casi blanco en el centro.
+ stroke('#ff9800',54,58,.78);
+ stroke('#ffb51c',34,42,.88);
+ stroke('#ffda48',19,27,1);
+ stroke('#fff08a',9,18,1);
+ stroke('#fffde8',3.5,10,.98);
+ return new THREE.CanvasTexture(c);
+}
+const centralRuneMaterial=new THREE.SpriteMaterial({map:makeCentralRuneTexture(),transparent:true,opacity:1,depthWrite:false,depthTest:false,blending:THREE.AdditiveBlending,toneMapped:false});
+const centralRune=new THREE.Sprite(centralRuneMaterial);
+centralRune.scale.set(.28,.47,1);centralRune.position.copy(stemAnchor);centralRune.renderOrder=12;world.add(centralRune);
+
+// El halo intenso nace exactamente en la runa, no en las flores.
+const centerAuraOuter=new THREE.Sprite(new THREE.SpriteMaterial({map:nodeGlowTex,color:0xffb51c,transparent:true,opacity:.88,depthWrite:false,depthTest:false,blending:THREE.AdditiveBlending,toneMapped:false}));
+centerAuraOuter.scale.set(2.225,2.225,1);centerAuraOuter.position.copy(stemAnchor);centerAuraOuter.renderOrder=8;world.add(centerAuraOuter);
+const centerAuraInner=new THREE.Sprite(new THREE.SpriteMaterial({map:nodeGlowTex,color:0xffee86,transparent:true,opacity:.82,depthWrite:false,depthTest:false,blending:THREE.AdditiveBlending,toneMapped:false}));
+centerAuraInner.scale.set(1.075,1.075,1);centerAuraInner.position.copy(stemAnchor);centerAuraInner.renderOrder=9;world.add(centerAuraInner);
+
+let activeRune=-1,activeSince=0;
+const runeSparks=[];
+for(let i=0;i<3;i++){const spark=new THREE.Sprite(new THREE.SpriteMaterial({map:nodeGlowTex,color:0xfff0a0,transparent:true,opacity:0,depthWrite:false,depthTest:false,blending:THREE.AdditiveBlending,toneMapped:false}));spark.scale.set(.13,.13,1);spark.visible=false;spark.renderOrder=11;world.add(spark);runeSparks.push(spark)}
+
+const radialDefs=[];
+function makeNode(i,dir){
+ const radius=2.42;const end=stemAnchor.clone().add(dir.clone().multiplyScalar(radius));
+ const points=new Float32Array([stemAnchor.x,stemAnchor.y,stemAnchor.z,end.x,end.y,end.z]);const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(points,3));
+ const mat=new THREE.LineBasicMaterial({color:0xffdc70,transparent:true,opacity:.384,blending:THREE.AdditiveBlending,depthWrite:false});const line=new THREE.Line(g,mat);world.add(line);wires.push(line);
+ const group=new THREE.Group();group.position.copy(end);group.userData.index=i;group.userData.message=messages[i];
+ const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:nodeGlowTex,color:0xffd84d,transparent:true,opacity:.784,depthWrite:false,blending:THREE.AdditiveBlending}));glow.scale.set(.82,.82,.82);group.add(glow);
+ const runeTex=makeRuneTexture(runes[i][0]);const rune=new THREE.Sprite(new THREE.SpriteMaterial({map:runeTex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));rune.scale.set(.46,.46,.46);rune.userData.rune=true;group.add(rune);
+ world.add(group);nodes.push(group);radialDefs.push({line,group,dir:dir.clone(),radius});
+}
+function updateRadialOrigin(){
+ for(const item of radialDefs){
+  const end=stemAnchor.clone().add(item.dir.clone().multiplyScalar(item.radius));
+  const a=item.line.geometry.attributes.position.array;
+  a[0]=stemAnchor.x;a[1]=stemAnchor.y;a[2]=stemAnchor.z;a[3]=end.x;a[4]=end.y;a[5]=end.z;
+  item.line.geometry.attributes.position.needsUpdate=true;item.line.geometry.computeBoundingSphere();item.group.position.copy(end);
+ }
+ centralRune.position.copy(stemAnchor);centerAuraOuter.position.copy(stemAnchor);centerAuraInner.position.copy(stemAnchor);
+}
+const dirs=[];const count=messages.length;for(let i=0;i<count;i++){const y=THREE.MathUtils.lerp(-.72,.72,(i+.5)/count);const a=i*Math.PI*(3-Math.sqrt(5));const r=Math.sqrt(1-y*y);dirs.push(new THREE.Vector3(Math.cos(a)*r,y,Math.sin(a)*r).normalize())}
+dirs.forEach((d,i)=>makeNode(i,d));
+
+let flower=null;
+function frameFlower(obj){
+ const box=new THREE.Box3().setFromObject(obj);
+ const center=box.getCenter(new THREE.Vector3());
+ const size=box.getSize(new THREE.Vector3());
+ const scale=2.05/Math.max(size.x,size.y,size.z);
+ // Three.js aplica primero la escala local y luego la traslación del objeto.
+ // Por eso el centro del bounding box debe multiplicarse por la misma escala.
+ const sceneOffsetY=-0.08;
+ obj.scale.setScalar(scale);
+ obj.position.set(-center.x*scale, -center.y*scale+sceneOffsetY, -center.z*scale);
+ flower=obj;
+ // El tallo ocupa aproximadamente y=0.02..0.20 en el GLB original; y=0.11 es su centro.
+ const stemCenterSourceY=0.11;
+ const stemCenterWorldY=(stemCenterSourceY-center.y)*scale+sceneOffsetY;
+ // OrbitControls hace zoom alrededor de target: cámara y target comparten este centro.
+ stemAnchor.set(0,stemCenterWorldY,0);
+ updateRadialOrigin();
+ controls.target.copy(stemAnchor);
+ camera.position.set(0.25,stemCenterWorldY+0.64,4.4);
+ controls.update();
+}
+function setActiveRune(i){activeRune=i;activeSince=clock.getElapsedTime();}
+function clearActiveRune(){activeRune=-1;runeSparks.forEach(s=>s.visible=false);}
+function showMessage(i){setActiveRune(i);document.getElementById('msgNo').textContent=runes[i][0]+' · '+runes[i][1]+' · para Dennisse';document.getElementById('msgText').textContent=messages[i];document.getElementById('message').classList.add('show')}
+document.getElementById('close').addEventListener('click',()=>{document.getElementById('message').classList.remove('show');clearActiveRune()});
+const heartModal=document.getElementById('heart-modal');
+function closeHeart(){heartIsOpen=false;heartModal.classList.remove('show');heartModal.setAttribute('aria-hidden','true')}
+document.getElementById('heart-close').addEventListener('click',closeHeart);
+heartModal.addEventListener('click',e=>{if(e.target===heartModal)closeHeart()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeHeart()});
+
+const loader=new GLTFLoader();
+function loaded(gltf){frameFlower(gltf.scene);world.add(gltf.scene);loading.classList.add('hide');setTimeout(()=>loading.remove(),650)}
+if(location.protocol==='file:'){loading.classList.add('hide');setTimeout(()=>loading.remove(),650);localBox.classList.add('show');}
+else loader.load('./sunflower.glb',loaded,undefined,()=>{loading.classList.add('hide');setTimeout(()=>loading.remove(),650);localBox.classList.add('show')});
+
+document.getElementById('file').addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;const url=URL.createObjectURL(f);localBox.classList.remove('show');loading.classList.remove('hide');loader.load(url,loaded,undefined,()=>{loading.classList.add('hide');localBox.classList.add('show')});});
+
+let downAt=null;
+function distanceToSegment(px,py,ax,ay,bx,by){
+ const dx=bx-ax,dy=by-ay;const length2=dx*dx+dy*dy;
+ const t=length2?THREE.MathUtils.clamp(((px-ax)*dx+(py-ay)*dy)/length2,0,1):0;
+ return Math.hypot(px-(ax+t*dx),py-(ay+t*dy));
+}
+function hitCentralRune(clientX,clientY){
+ camera.updateMatrixWorld();centralRune.updateMatrixWorld();
+ const rect=canvas.getBoundingClientRect();
+ const right=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0);
+ const up=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,1);
+ const projected=[];
+ for(const path of centralRunePaths){
+  const pts=path.map(([x,y])=>{
+   const localX=(x/512-.5)*centralRune.scale.x;
+   const localY=(.5-y/860)*centralRune.scale.y;
+   const wp=stemAnchor.clone().addScaledVector(right,localX).addScaledVector(up,localY);
+   const ndc=wp.project(camera);
+   return [rect.left+(ndc.x*.5+.5)*rect.width,rect.top+(-ndc.y*.5+.5)*rect.height];
+  });projected.push(pts);
+ }
+ for(const path of projected)for(let i=0;i<path.length-1;i++)if(distanceToSegment(clientX,clientY,...path[i],...path[i+1])<=18)return true;
+ return false;
+}
+canvas.addEventListener('pointerdown',e=>{if(e.isPrimary)downAt={x:e.clientX,y:e.clientY}});
+canvas.addEventListener('pointercancel',()=>{downAt=null});
+canvas.addEventListener('pointerup',e=>{
+ if(!e.isPrimary||!downAt)return;
+ const moved=Math.hypot(e.clientX-downAt.x,e.clientY-downAt.y);downAt=null;
+ if(moved>8)return;
+ // El HUD no intercepta punteros: detectamos un tap sobre las líneas exactas desde el canvas.
+ if(hitCentralRune(e.clientX,e.clientY)){
+  clearActiveRune();heartIsOpen=true;heartRevealAt=clock.getElapsedTime();const modal=document.getElementById('heart-modal');modal.classList.add('show');modal.setAttribute('aria-hidden','false');return;
+ }
+ const r=canvas.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;
+ raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObjects(nodes,true);
+ if(hits.length){let o=hits[0].object;while(o.parent!==world&&o.parent)o=o.parent;const idx=o.userData.index;if(Number.isInteger(idx))showMessage(idx)}
+});
+
+function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}window.addEventListener('resize',resize);resize();
+const clock=new THREE.Clock();function animate(){
+ requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);const t=clock.elapsedTime;controls.update();
+ // Apariciones espaciadas: unas pocas por minuto, no una lluvia de proyectiles.
+ shootingStars.forEach(m=>{
+  if(!m.active){m.next-=dt;if(m.next<=0){launchShootingStar(m);m.next=3.2+Math.random()*5.2;}return;}
+  m.age+=dt;const u=Math.min(m.age/m.duration,1);const headPos=m.start.clone().addScaledVector(m.velocity,m.age);
+  const tailPos=headPos.clone().addScaledVector(m.velocity,-.34);m.head.position.copy(headPos);m.trail.geometry.setFromPoints([tailPos,headPos]);
+  const fade=Math.sin(Math.PI*u);m.trail.material.opacity=.82*fade;m.head.material.opacity=.95*fade;
+  if(u>=1){m.active=false;m.trail.visible=false;m.head.visible=false;m.trail.material.opacity=0;m.head.material.opacity=0;}
+ });
+ // El ramo respira apenas; conserva la composición y no desplaza el centro de cámara.
+ if(flower)flower.rotation.y=Math.sin(t*.16)*.018;
+ // Nebulosas lentas, casi imperceptibles: profundidad cinematográfica sin ruido visual.
+ nebulaLayers.forEach((n,i)=>{n.sprite.position.x=n.base.x+Math.sin(t*.035+n.phase)*.22;n.sprite.position.y=n.base.y+Math.cos(t*.028+n.phase)*.16;n.sprite.material.opacity=[.55,.45,.40][i]+Math.sin(t*.12+n.phase)*.025});
+ // Motas flotantes con parallax sutil.
+ const revealTarget=heartIsOpen?1:0;heartReveal+=(revealTarget-heartReveal)*.035;const converge=heartReveal*heartReveal*(3-2*heartReveal);const dp=dustGeo.attributes.position.array;for(let i=0;i<dustCount;i++){const bx=dustBase[i*3]+Math.sin(t*.22+dustPhases[i])*.035,by=dustBase[i*3+1]+Math.sin(t*.3+dustPhases[i])*.07,bz=dustBase[i*3+2]+Math.cos(t*.19+dustPhases[i])*.035;dp[i*3]=THREE.MathUtils.lerp(bx,stemAnchor.x,converge);dp[i*3+1]=THREE.MathUtils.lerp(by,stemAnchor.y,converge);dp[i*3+2]=THREE.MathUtils.lerp(bz,stemAnchor.z,converge);}dustGeo.attributes.position.needsUpdate=true;
+ nodes.forEach((n,i)=>{const selected=i===activeRune;const pulse=1+Math.sin(t*1.4+i*.7)*.055;n.scale.setScalar(pulse*(selected?1.12:1));const glowSprite=n.children[0],runeSprite=n.children[1];glowSprite.material.opacity=activeRune<0?.72+Math.sin(t*1.4+i*.7)*.075:(selected?.96:.30);runeSprite.material.opacity=activeRune<0?.656+Math.sin(t*1.4+i*.7)*.075:(selected?1:.42)});
+ wires.forEach((w,i)=>{const selected=i===activeRune;w.material.opacity=activeRune<0?.30+Math.sin(t*.9+i*.4)*.045:(selected?.68:.12);w.material.color.setHex(selected?0xffedaa:0xffdc70)});
+ // Pequeñas chispas viajan desde la runa central hacia la runa seleccionada.
+ if(activeRune>=0&&radialDefs[activeRune]){const end=radialDefs[activeRune].group.position;for(let j=0;j<runeSparks.length;j++){const phase=((t-activeSince)*.58+j*.29)%1;const eased=phase*phase*(3-2*phase);runeSparks[j].visible=true;runeSparks[j].position.copy(stemAnchor).lerp(end,eased);runeSparks[j].material.opacity=Math.sin(phase*Math.PI)*.95;runeSparks[j].scale.setScalar(.10+Math.sin(phase*Math.PI)*.07)}}else runeSparks.forEach(sp=>sp.visible=false);
+ glow.material.opacity=.72+Math.sin(t*.45)*.08;
+ centerAuraOuter.material.opacity=.82+Math.sin(t*.72)*.13+heartReveal*.16;centerAuraOuter.scale.setScalar(2.16+Math.sin(t*.72)*.09+heartReveal*.42);
+ centerAuraInner.material.opacity=.76+Math.sin(t*1.05)*.16+heartReveal*.12;centerAuraInner.scale.setScalar(1.04+Math.sin(t*1.05)*.035+heartReveal*.13);
+ centralRune.material.opacity=.96+Math.sin(t*1.2)*.04;
+ renderer.render(scene,camera)
+}animate();
+</script>
+</body>
+</html>
